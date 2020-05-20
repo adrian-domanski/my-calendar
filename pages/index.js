@@ -1,209 +1,152 @@
-import Head from 'next/head'
+import Layout from "../components/Layout/Layout";
+import { useState, useEffect } from "react";
+import CardItem from "../components/CardItem";
+import moment from "moment";
 
-export default function Home() {
+function Home({ res }) {
+  const [currentTab, setCurrentTab] = useState("all");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [holidays, setHolidays] = useState({
+    national: [],
+    observance: [],
+    all: [],
+  });
+  const months = moment.months();
+
+  useEffect(() => {
+    if (res.meta.code === 200) {
+      const nationalDays = res.response.holidays.filter((item) =>
+        item.type.includes("National holiday")
+      );
+
+      const observanceDays = res.response.holidays.filter((item) =>
+        item.type.includes("Observance")
+      );
+
+      const nationalGrouped = months.map((month, index) =>
+        nationalDays.filter((day) => day.date.datetime.month === index + 1)
+      );
+
+      const observanceGrouped = months.map((month, index) =>
+        observanceDays.filter((day) => day.date.datetime.month === index + 1)
+      );
+
+      const allGrouped = months.map((month, index) =>
+        [...nationalDays, ...observanceDays].filter(
+          (day) => day.date.datetime.month === index + 1
+        )
+      );
+
+      setHolidays({
+        national: nationalGrouped,
+        observance: observanceGrouped,
+        all: allGrouped,
+      });
+    }
+  }, []);
+
+  const monthChange = ({ target: { value } }) => {
+    setSelectedMonth(value);
+  };
+
   return (
-    <div className="container">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main>
-        <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
-
-        <div className="grid">
-          <a href="https://nextjs.org/docs" className="card">
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className="card">
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/zeit/next.js/tree/master/examples"
-            className="card"
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="card"
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+    <Layout>
+      <div className="container section">
+        <div className="tabs is-centered is-boxed">
+          <ul>
+            <li
+              className={`${currentTab === "all" ? "is-active" : ""}`}
+              onClick={() => setCurrentTab("all")}>
+              <a>
+                <span>All</span>
+              </a>
+            </li>
+            <li
+              className={`${currentTab === "national" ? "is-active" : ""}`}
+              onClick={() => setCurrentTab("national")}>
+              <a>
+                <span>National</span>
+              </a>
+            </li>
+            <li
+              className={`${currentTab === "observance" ? "is-active" : ""}`}
+              onClick={() => setCurrentTab("observance")}>
+              <a>
+                <span>Observance</span>
+              </a>
+            </li>
+          </ul>
         </div>
-      </main>
 
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
-        </a>
-      </footer>
+        <div className="is-100w flex-content-right">
+          {selectedMonth ? (
+            <button
+              className="delete is-medium has-background-danger mr-2"
+              onClick={() => setSelectedMonth("")}></button>
+          ) : null}
 
-      <style jsx>{`
-        .container {
-          min-height: 100vh;
-          padding: 0 0.5rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
+          <div className="select">
+            <select value={selectedMonth} onChange={monthChange}>
+              <option value="" disabled>
+                Month
+              </option>
+              {months.map((month, index) => (
+                <option key={index} value={index + 1}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-        main {
-          padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer {
-          width: 100%;
-          height: 100px;
-          border-top: 1px solid #eaeaea;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer img {
-          margin-left: 0.5rem;
-        }
-
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        .title a {
-          color: #0070f3;
-          text-decoration: none;
-        }
-
-        .title a:hover,
-        .title a:focus,
-        .title a:active {
-          text-decoration: underline;
-        }
-
-        .title {
-          margin: 0;
-          line-height: 1.15;
-          font-size: 4rem;
-        }
-
-        .title,
-        .description {
-          text-align: center;
-        }
-
-        .description {
-          line-height: 1.5;
-          font-size: 1.5rem;
-        }
-
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
-
-        .grid {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-
-          max-width: 800px;
-          margin-top: 3rem;
-        }
-
-        .card {
-          margin: 1rem;
-          flex-basis: 45%;
-          padding: 1.5rem;
-          text-align: left;
-          color: inherit;
-          text-decoration: none;
-          border: 1px solid #eaeaea;
-          border-radius: 10px;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
-
-        .card h3 {
-          margin: 0 0 1rem 0;
-          font-size: 1.5rem;
-        }
-
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
-        }
-
-        .logo {
-          height: 1em;
-        }
-
-        @media (max-width: 600px) {
-          .grid {
-            width: 100%;
-            flex-direction: column;
-          }
-        }
-      `}</style>
-
-      <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
-
-        * {
-          box-sizing: border-box;
-        }
-      `}</style>
-    </div>
-  )
+        <div className="content columns is-multiline">
+          {holidays[currentTab].length ? (
+            holidays[currentTab].map((month, index) =>
+              (month.length || index + 1 == Number(selectedMonth)) &&
+              (Number(selectedMonth) === index + 1 ||
+                !Number(selectedMonth)) ? (
+                <section key={index} className="is-100w mb-4">
+                  <h1 className="title is-100w has-text-danger">
+                    {months[index]}
+                  </h1>
+                  <div className="columns is-multiline">
+                    {month.length ? (
+                      month.map((day, index) => (
+                        <div
+                          key={index}
+                          className="column is-4 is-flex reverse-columns">
+                          <CardItem day={day} />
+                        </div>
+                      ))
+                    ) : (
+                      <div key={index} className="column">
+                        <h1 className="title is-size-4">No results</h1>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              ) : null
+            )
+          ) : (
+            <h1 className="has-text-centered is-100w mt-4">No results</h1>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
 }
+
+Home.getInitialProps = async (ctx) => {
+  const options = {
+    year: 2020,
+    country: "PL",
+  };
+  const res = await fetch(
+    `https://calendarific.com/api/v2/holidays?&api_key=${process.env.API_KEY}&country=${options.country}&year=${options.year}`
+  );
+
+  const json = await res.json();
+  return { res: json };
+};
+
+export default Home;

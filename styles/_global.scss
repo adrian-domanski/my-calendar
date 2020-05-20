@@ -1,0 +1,27 @@
+.flex-content-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.flex-content-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.reverse-columns {
+  flex-direction: column-reverse;
+  display: flex;
+}
+
+.is-100w {
+  width: 100%;
+}
+
+.card {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
